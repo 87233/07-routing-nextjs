@@ -1,10 +1,17 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import css from "./NotePreview.module.css";
 import { fetchNoteById } from "@/lib/api";
-import NotePreview from "@/components/NotePreview/NotePreview";
-const NotePreviewClient = () => {
-  const { id } = useParams<{ id: string }>();
+import Modal from "@/components/Modal/Modal";
+
+interface NotePreviewClientProps {
+  id?: string;
+}
+const NotePreviewClient = ({ id: propId }: NotePreviewClientProps) => {
+  const params = useParams<{ id: string }>();
+  const id = propId ?? params.id;
 
   const {
     data: note,
@@ -12,14 +19,43 @@ const NotePreviewClient = () => {
     error,
   } = useQuery({
     queryKey: ["note", id],
-    queryFn: () => fetchNoteById(id),
+    queryFn: () => fetchNoteById(id!),
     refetchOnMount: false,
+    enabled: Boolean(id),
   });
 
-  if (isLoading) return <p>Loading, please wait...</p>;
+  const router = useRouter();
+  const close = () => router.back();
 
-  if (error || !note) return <p>Something went wrong.</p>;
+  if (isLoading) {
+    return (
+      <Modal onClose={close}>
+        <p>Loading, please wait...</p>
+      </Modal>
+    );
+  }
 
-  return <NotePreview note={note} />;
+  if (error || !note) {
+    return (
+      <Modal onClose={close}>
+        <p>Something went wrong.</p>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal onClose={close}>
+      <div className={css.container}>
+        <div className={css.item}>
+          <div className={css.header}>
+            <h2>{note.title}</h2>
+          </div>
+          <p className={css.content}>{note.content}</p>
+          <p className={css.tag}>{note.tag}</p>
+          <p className={css.date}>{note.createdAt}</p>
+        </div>
+      </div>
+    </Modal>
+  );
 };
 export default NotePreviewClient;

@@ -9,7 +9,7 @@ import {
 type Props = {
   params: Promise<{ id: string }>;
 };
-export default async function NotePreviewPaage({ params }: Props) {
+export default async function NotePreviewPage({ params }: Props) {
   const { id } = await params;
 
   const queryClient = new QueryClient();
